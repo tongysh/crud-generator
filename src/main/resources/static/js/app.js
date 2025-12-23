@@ -74,7 +74,7 @@ function bindEvents() {
     elements.backToStep2.addEventListener('click', () => goToStep(2));
     
     // 生成代码按钮
-    elements.generateBtn.addEventListener('click', generateCode);
+    elements.generateBtn.addEventListener('click', downloadGeneratedCode);
     
     // 重置按钮
     elements.resetBtn.addEventListener('click', resetApp);
@@ -381,6 +381,110 @@ async function generateCode() {
             showResult(true, data.message || `代码生成成功！文件已保存到: ${data.data || '默认目录'}`, '');
         } else {
             showResult(false, data.message);
+        }
+    } catch (error) {
+        hideLoading();
+        setButtonState(elements.generateBtn, false, '🚀 开始生成代码');
+        showResult(false, '无法连接到服务器，请检查后端服务是否正常运行');
+    }
+}
+
+/**
+ * 下载生成的代码zip包
+ */
+async function downloadGeneratedCode() {
+    // 获取表单数据
+    // 获取选中的数据库和表名
+    const selectedDatabase = typeof getSelectedValue !== 'undefined' ? 
+        getSelectedValue('databaseName') : elements.databaseSelect.textContent.trim();
+    const selectedTable = typeof getSelectedValue !== 'undefined' ? 
+        getSelectedValue('tableName') : elements.tableSelect.textContent.trim();
+    
+    const formData = {
+        dbUrl: document.getElementById('dbUrl').value.trim(),
+        dbUsername: document.getElementById('dbUsername').value.trim(),
+        dbPassword: document.getElementById('dbPassword').value.trim(),
+        databaseName: selectedDatabase,
+        tableName: selectedTable,
+        packageName: elements.packageName.value.trim(),
+        outputDir: elements.outputDir.value.trim()
+    };
+
+    // 验证必填项
+    if (!formData.databaseName) {
+        showResult(false, '请选择数据库');
+        return;
+    }
+    
+    if (!formData.tableName) {
+        showResult(false, '请选择表');
+        return;
+    }
+    
+    if (!formData.packageName) {
+        showResult(false, '请填写包名');
+        return;
+    }
+
+    setButtonState(elements.generateBtn, true, '生成中...');
+    showLoading();
+    hideResult();
+
+    try {
+        const response = await fetch('/api/generator/generate-download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            // 获取响应数据并创建下载
+            const blob = await response.blob();
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = 'generated-code.zip';
+            
+            // 从响应头中提取文件名
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename\*?=(?:"([^\"]+)"|([^;\s]+))/i);
+                if (filenameMatch && (filenameMatch[1] || filenameMatch[2])) {
+                    filename = decodeURIComponent(filenameMatch[1] || filenameMatch[2]);
+                }
+            }
+            
+            // 创建下载链接
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            
+            // 清理
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+            
+            hideLoading();
+            setButtonState(elements.generateBtn, false, '🚀 开始生成代码');
+            
+            // 显示成功消息
+            showResult(true, `代码生成成功！文件已下载: ${filename}`);
+        } else {
+            // 尝试获取错误信息
+            const errorText = await response.text();
+            let errorMessage = '生成失败';
+            
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorJson.msg || errorText;
+            } catch (e) {
+                errorMessage = errorText || '生成失败';
+            }
+            
+            hideLoading();
+            setButtonState(elements.generateBtn, false, '🚀 开始生成代码');
+            showResult(false, errorMessage);
         }
     } catch (error) {
         hideLoading();

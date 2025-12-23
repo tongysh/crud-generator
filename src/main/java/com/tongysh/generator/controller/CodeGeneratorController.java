@@ -7,6 +7,9 @@ import com.tongysh.generator.service.CodeGeneratorService;
 import com.tongysh.generator.service.DatabaseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -55,6 +58,7 @@ public class CodeGeneratorController {
         }
     }
 
+
     /**
      * 生成CRUD代码
      * 
@@ -83,5 +87,52 @@ public class CodeGeneratorController {
         }
         
         return codeGeneratorService.generateCode(request);
+    }
+    
+    /**
+     * 生成CRUD代码并下载zip包
+     * 
+     * @param request 生成请求参数（表名、包名）
+     * @return 生成结果
+     */
+    @PostMapping(value = "/generate-download", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<byte[]> generateCodeAndDownload(@RequestBody GeneratorRequest request) {
+        log.info("开始生成代码并下载，表名: {}, 包名: {}", request.getTableName(), request.getPackageName());
+        
+        // 参数校验
+        if (request.getDbUrl() == null || request.getDbUrl().trim().isEmpty()) {
+            throw new IllegalArgumentException("数据库连接地址不能为空");
+        }
+        if (request.getDbUsername() == null || request.getDbUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("数据库用户名不能为空");
+        }
+        if (request.getDatabaseName() == null || request.getDatabaseName().trim().isEmpty()) {
+            throw new IllegalArgumentException("数据库名不能为空");
+        }
+        if (request.getTableName() == null || request.getTableName().trim().isEmpty()) {
+            throw new IllegalArgumentException("表名不能为空");
+        }
+        if (request.getPackageName() == null || request.getPackageName().trim().isEmpty()) {
+            throw new IllegalArgumentException("包名不能为空");
+        }
+        
+        // 获取输出目录名作为压缩包名称
+        String outputDir = request.getOutputDir();
+        if (outputDir == null || outputDir.trim().isEmpty()) {
+            outputDir = "generated-code";
+        }
+        
+        // 生成代码并返回zip字节数组
+        byte[] zipBytes = codeGeneratorService.generateCodeAsZip(request);
+        
+        // 设置响应头
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", outputDir + ".zip");
+        headers.setContentLength(zipBytes.length);
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(zipBytes);
     }
 }
