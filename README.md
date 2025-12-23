@@ -31,3 +31,4 @@
 ![img.png](assets/img3.png)
 
 5. 生成的代码最终将以压缩包形式下载到本地
+![img.png](assets/img4.png)
