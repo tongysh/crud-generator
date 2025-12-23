@@ -35,6 +35,8 @@ const elements = {
     tableSelect: document.getElementById('tableName'),
     packageName: document.getElementById('packageName'),
     outputDir: document.getElementById('outputDir'),
+    dbPassword: document.getElementById('dbPassword'),
+    passwordToggle: document.getElementById('passwordToggle'),
     
     // 按钮元素
     connectBtn: document.getElementById('connectBtn'),
@@ -79,6 +81,9 @@ function bindEvents() {
     // 重置按钮
     elements.resetBtn.addEventListener('click', resetApp);
     
+    // 密码显示/隐藏切换
+    elements.passwordToggle.addEventListener('click', togglePasswordVisibility);
+    
     // 等待自定义下拉组件加载完成后再绑定事件
     setTimeout(() => {
         // 数据库选择变化
@@ -86,6 +91,13 @@ function bindEvents() {
         
         // 表名选择变化
         elements.tableSelect.addEventListener('change', suggestPackageName);
+        
+        // 密码输入框回车事件
+        elements.dbPassword.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                connectDatabase();
+            }
+        });
     }, 100);
 }
 
@@ -546,4 +558,47 @@ function resetApp() {
     // 重置数据
     databaseList = [];
     tableList = [];
+}
+
+/**
+ * 切换密码显示/隐藏
+ */
+function togglePasswordVisibility() {
+    const passwordInput = elements.dbPassword;
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    // 更改眼睛图标状态
+    if (type === 'text') {
+        // 密码可见状态 - 显示眼睛划掉的图标
+        elements.passwordToggle.classList.add('reveal');
+        updatePasswordIcon(true);
+    } else {
+        // 密码隐藏状态 - 显示正常眼睛图标
+        elements.passwordToggle.classList.remove('reveal');
+        updatePasswordIcon(false);
+    }
+}
+
+/**
+ * 更新密码图标
+ * @param {boolean} isRevealed 是否显示密码
+ */
+function updatePasswordIcon(isRevealed) {
+    const icon = elements.passwordToggle.querySelector('.password-icon');
+    
+    if (isRevealed) {
+        // 密码可见状态 - 显示眼睛划掉的图标
+        icon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor"></path>
+            <path d="M15 9l-6 6" stroke="currentColor" stroke-width="2"></path>
+            <circle cx="12" cy="12" r="3" stroke="currentColor"></circle>
+        `;
+    } else {
+        // 密码隐藏状态 - 显示正常眼睛图标
+        icon.innerHTML = `
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor"></path>
+            <circle cx="12" cy="12" r="3" stroke="currentColor"></path>
+        `;
+    }
 }

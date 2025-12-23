@@ -162,6 +162,53 @@ h2 {
     margin-bottom: 25px;
 }
 
+/* 密码输入框样式 */
+.password-input {
+    position: relative;
+    width: 100%;
+}
+
+.password-input input {
+    width: 100%;
+    padding-right: 40px; /* 为眼睛图标留出空间 */
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+    z-index: 10;
+    color: #999;
+    transition: color 0.3s ease;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-icon {
+    transition: all 0.3s ease;
+    width: 16px;
+    height: 16px;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+}
+
+.password-toggle.reveal .password-icon {
+    color: #667eea;
+}
+
 label {
     display: block;
     margin-bottom: 8px;

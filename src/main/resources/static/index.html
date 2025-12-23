@@ -50,7 +50,15 @@
 
                         <div class="form-group">
                             <label for="dbPassword">密码</label>
-                            <input type="password" id="dbPassword" name="dbPassword" placeholder="请输入数据库密码">
+                            <div class="password-input">
+                                <input type="password" id="dbPassword" name="dbPassword" placeholder="请输入数据库密码">
+                                <button type="button" class="password-toggle" id="passwordToggle" aria-label="切换密码显示">
+                                    <svg class="password-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         <button type="button" class="btn-primary" id="connectBtn">
